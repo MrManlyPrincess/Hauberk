@@ -12,12 +12,5 @@
 				"Engine"
 			]
 		}
-	],
-	"Plugins": [
-		{
-			"Name": "DungeonArchitect",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/1a4ad2a06f174a26af8a29728241ce42"
-		}
 	]
 }
