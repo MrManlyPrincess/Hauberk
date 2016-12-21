@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Hauberk.h"
-#include "CreationAnimInstance.h"
+#include "BaseAnimInstance.h"
 
-float UCreationAnimInstance::GetPositionFromMontage(const UAnimMontage* Montage)
+float UBaseAnimInstance::GetPositionFromMontage(const UAnimMontage* Montage)
 {
 	return Montage_GetPosition(Montage);
 }
