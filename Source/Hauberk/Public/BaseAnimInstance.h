@@ -4,13 +4,13 @@
 
 #include "Animation/AnimInstance.h"
 #include "Runtime/Engine/Classes/Animation/AnimMontage.h"
-#include "CreationAnimInstance.generated.h"
+#include "BaseAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class HAUBERK_API UCreationAnimInstance : public UAnimInstance
+class HAUBERK_API UBaseAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
