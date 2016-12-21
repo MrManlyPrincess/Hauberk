@@ -27,6 +27,9 @@ ABaseCharacter::ABaseCharacter()
 	MaxStamina = 100.f;
 	LockTargetInvalidCount = 0;
 	LockTargetInvalidLimit = 1;
+	CameraUpdateSpeed = 5.0f;
+	CameraLockedOnOffset = FVector(25.f, 50.f, 50.f);
+	CameraDefaultOffset = PlayerCamera->GetRelativeTransform().GetLocation();
 }
 
 // Called when the game starts or when spawned
@@ -41,6 +44,7 @@ void ABaseCharacter::BeginPlay()
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	UpdateCamera();
 }
 
 // Called to bind functionality to input
@@ -67,7 +71,7 @@ void ABaseCharacter::Landed(const FHitResult& Hit)
 	GetCharacterMovement()->bNotifyApex = true;
 }
 
-bool ABaseCharacter::IsInFrustrum(ACharacter * Character)
+bool ABaseCharacter::IsInFrustrum(ACharacter* Character)
 {
 	ULocalPlayer* LocalPlayer = Cast<APlayerController>(GetController())->GetLocalPlayer();
 	if (LocalPlayer != nullptr && LocalPlayer->ViewportClient != nullptr && LocalPlayer->ViewportClient->Viewport)
@@ -90,6 +94,66 @@ bool ABaseCharacter::IsInFrustrum(ACharacter * Character)
 	}
 
 	return false;
+}
+
+void ABaseCharacter::UpdateCamera_Implementation()
+{	
+	// If we're locked on, we want to try to focus on the lock target.
+	if (bIsLockedOn)
+	{
+		if (IsValid(Target_LockOn))
+		{
+			const ABaseCharacter* _LockTarget = Cast<ABaseCharacter>(Target_LockOn);
+			if (_LockTarget)
+			{
+
+				// If our lock target is a character, check if they're dead.
+				// If they are dead, then unlock.
+				if (_LockTarget->IsAlive() == false)
+				{
+					Unlock();
+					return;
+				}
+			}
+
+			const AController* _Controller = GetController();
+			UWorld* _World = GetWorld();
+			if (Controller && _World)
+			{
+				const FRotator _ControlRotation = GetControlRotation();
+				const FRotator _CameraToTargetRotation = (PlayerCamera->GetComponentLocation() - Target_LockOn->GetActorLocation()).Rotation();
+				const FRotator _PlayerToTargetRotation = (GetActorLocation() - Target_LockOn->GetActorLocation()).Rotation();
+				const FRotator _CombinedRotation = FRotator(FMath::Clamp(_CameraToTargetRotation.Pitch, -20.f, 20.f), 0.f, _PlayerToTargetRotation.Yaw);
+				const FRotator FinalRotation = FMath::RInterpTo(_ControlRotation, _CombinedRotation, _World->GetDeltaSeconds(), CameraUpdateSpeed);
+
+				Controller->SetControlRotation(FinalRotation);
+				CameraArm->SetWorldRotation(FinalRotation);
+			}
+		}
+	}
+	else
+	{
+		AddCameraOffset();
+	}
+}
+
+void ABaseCharacter::AddCameraOffset_Implementation()
+{
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		if (bIsLockedOn)
+		{
+			FTransform CameraTransform = PlayerCamera->GetRelativeTransform();
+			FMath::VInterpTo(CameraTransform.GetLocation(), CameraLockedOnOffset, World->GetDeltaSeconds(), CameraUpdateSpeed);
+		}
+		else
+		{
+			FTransform CameraTransform = PlayerCamera->GetRelativeTransform();
+			FMath::VInterpTo(CameraTransform.GetLocation(), CameraDefaultOffset, World->GetDeltaSeconds(), CameraUpdateSpeed);
+		}
+	}
 }
 
 TArray<ACharacter*> ABaseCharacter::GetCharactersInView()
@@ -296,6 +360,11 @@ void ABaseCharacter::Unlock()
 {
 	// Set that we aren't locked on anymore and
 	// clear our lock target.
+	if (bIsLockedOn == false)
+	{
+		return;
+	}
+
 	bIsLockedOn = false;
 	Target_LockOn = NULL;
 

@@ -31,6 +31,16 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
 		UCameraComponent* PlayerCamera;
 
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
+		float CameraUpdateSpeed;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Camera")
+		FVector CameraDefaultOffset;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
+		FVector CameraLockedOnOffset;
+
+
 	// LockOn Properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Transient, Category = "Lock On", meta = (DisplayName = "Lock Target"))
 		APawn* Target_LockOn;
@@ -86,6 +96,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Lock On")
 		bool GetClosestLockableTarget(ELockDirection Direction, ACharacter*& FoundTarget);
+
+	// Called each frame to update the camera's position.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Camera")
+		void UpdateCamera();
+
+	// Called each frame AFTER the update camera function to add post processing.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Camera")
+		void AddCameraOffset();
 
 	// Called when needing characters in our viewport.
 	UFUNCTION(BlueprintCallable, Category = "Camera|Frustrum")
