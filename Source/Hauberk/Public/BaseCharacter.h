@@ -3,6 +3,8 @@
 #pragma once
 
 #include "GameFramework/Character.h"
+#include "Damageable.h"
+#include "HealthComponent.h"
 #include "BaseCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -14,7 +16,7 @@ enum class ELockDirection : uint8
 };
 
 UCLASS()
-class HAUBERK_API ABaseCharacter : public ACharacter
+class HAUBERK_API ABaseCharacter : public ACharacter, public IDamageable
 {
 	GENERATED_BODY()
 
@@ -30,6 +32,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
 		UCameraComponent* PlayerCamera;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components|Health")
+		UHealthComponent* PlayerHealth;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
 		float CameraUpdateSpeed;
@@ -52,16 +57,11 @@ protected:
 		float LockOnRange;
 
 	// Stats Properties
-	UPROPERTY(BlueprintReadWrite, Category = "Character|Stats")
-		float MaxHealth;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Character|Stats")
 		float MaxStamina;
 
 private:
-
-	UPROPERTY(Transient, Replicated)
-		float Health;
 
 	UPROPERTY(Transient, Replicated)
 		float Stamina;
@@ -124,9 +124,6 @@ public:
 	// Checks to see if our health is above zero
 	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
 		bool IsAlive() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
-		float GetHealth() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
 		float GetStamina() const;

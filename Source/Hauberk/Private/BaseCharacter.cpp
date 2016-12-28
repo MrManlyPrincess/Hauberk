@@ -14,6 +14,7 @@ ABaseCharacter::ABaseCharacter()
 
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Arm"));
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera"));
+	PlayerHealth = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
 
 	CameraArm->SetupAttachment(GetCapsuleComponent());
 	PlayerCamera->SetupAttachment(CameraArm);
@@ -21,9 +22,11 @@ ABaseCharacter::ABaseCharacter()
 	CameraArm->bUsePawnControlRotation = true;
 	PlayerCamera->bUsePawnControlRotation = true;
 
+	PlayerHealth->SetIsReplicated(true);
+
 	LockOnRange = 2000.f;
 	LockTargetInvalidLimit = 3.f;
-	MaxHealth = 100.f;
+	//MaxHealth = 100.f;
 	MaxStamina = 100.f;
 	LockTargetInvalidCount = 0;
 	LockTargetInvalidLimit = 1;
@@ -36,7 +39,7 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	Health = MaxHealth;
+	//Health = MaxHealth;
 	Stamina = MaxStamina;
 }
 
@@ -250,12 +253,7 @@ void ABaseCharacter::CheckIfStillValidTarget()
 bool ABaseCharacter::IsAlive() const
 {
 	// Simple for now.
-	return Health > 0;
-}
-
-float ABaseCharacter::GetHealth() const
-{
-	return Health;
+	return true;
 }
 
 float ABaseCharacter::GetStamina() const
@@ -551,7 +549,7 @@ bool ABaseCharacter::Server_UpdateStamina_Validate(float Value, bool bIsPercenta
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	DOREPLIFETIME(ABaseCharacter, Health);
+	//DOREPLIFETIME(ABaseCharacter, Health);
 	DOREPLIFETIME_CONDITION(ABaseCharacter, Target_LockOn, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ABaseCharacter, bIsLockedOn, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(ABaseCharacter, Stamina, COND_OwnerOnly);
