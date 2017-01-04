@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "Damageable.generated.h"
+#include "Targetable.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UDamageable : public UInterface
+class UTargetable : public UInterface
 {
 	GENERATED_UINTERFACE_BODY()
 };
@@ -14,14 +14,13 @@ class UDamageable : public UInterface
 /**
  * 
  */
-class HAUBERK_API IDamageable
+class HAUBERK_API ITargetable
 {
 	GENERATED_IINTERFACE_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Damage")
-		void OnDamaged(AActor* DamageCauser);
-	
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Target")
+		FVector GetTargetableLocation();
 };

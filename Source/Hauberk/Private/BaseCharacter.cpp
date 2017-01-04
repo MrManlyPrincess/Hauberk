@@ -15,6 +15,7 @@ ABaseCharacter::ABaseCharacter()
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Arm"));
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera"));
 	PlayerHealth = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
+	PlayerStamina = CreateDefaultSubobject<UStaminaComponent>(TEXT("Stamina Component"));
 
 	CameraArm->SetupAttachment(GetCapsuleComponent());
 	PlayerCamera->SetupAttachment(CameraArm);
@@ -23,11 +24,10 @@ ABaseCharacter::ABaseCharacter()
 	PlayerCamera->bUsePawnControlRotation = true;
 
 	PlayerHealth->SetIsReplicated(true);
+	PlayerStamina->SetIsReplicated(true);
 
 	LockOnRange = 2000.f;
 	LockTargetInvalidLimit = 3.f;
-	//MaxHealth = 100.f;
-	MaxStamina = 100.f;
 	LockTargetInvalidCount = 0;
 	LockTargetInvalidLimit = 1;
 	CameraUpdateSpeed = 5.0f;
@@ -39,8 +39,6 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	//Health = MaxHealth;
-	Stamina = MaxStamina;
 }
 
 // Called every frame
@@ -72,6 +70,16 @@ void ABaseCharacter::Landed(const FHitResult& Hit)
 
 	// Reset the notify apex to true, otherwise we only get the notification once.
 	GetCharacterMovement()->bNotifyApex = true;
+}
+
+FVector ABaseCharacter::GetTargetableLocation_Implementation()
+{
+	return GetActorLocation();
+}
+
+void ABaseCharacter::OnDamaged_Implementation(AActor * DamageCauser)
+{
+
 }
 
 bool ABaseCharacter::IsInFrustrum(ACharacter* Character)
@@ -124,13 +132,14 @@ void ABaseCharacter::UpdateCamera_Implementation()
 			if (Controller && _World)
 			{
 				const FRotator _ControlRotation = GetControlRotation();
-				const FRotator _CameraToTargetRotation = (PlayerCamera->GetComponentLocation() - Target_LockOn->GetActorLocation()).Rotation();
-				const FRotator _PlayerToTargetRotation = (GetActorLocation() - Target_LockOn->GetActorLocation()).Rotation();
-				const FRotator _CombinedRotation = FRotator(FMath::Clamp(_CameraToTargetRotation.Pitch, -20.f, 20.f), 0.f, _PlayerToTargetRotation.Yaw);
+				const FRotator _CameraToTargetRotation = (Target_LockOn->GetActorLocation() - PlayerCamera->GetComponentLocation()).Rotation();
+				const FRotator _PlayerToTargetRotation = (Target_LockOn->GetActorLocation() - GetActorLocation()).Rotation();
+				const FRotator _CombinedRotation = FRotator(FMath::Clamp(_CameraToTargetRotation.Pitch, -20.f, 20.f), _PlayerToTargetRotation.Yaw, 0.f);
 				const FRotator FinalRotation = FMath::RInterpTo(_ControlRotation, _CombinedRotation, _World->GetDeltaSeconds(), CameraUpdateSpeed);
 
 				Controller->SetControlRotation(FinalRotation);
 				CameraArm->SetWorldRotation(FinalRotation);
+				AddCameraOffset();
 			}
 		}
 	}
@@ -189,7 +198,7 @@ bool ABaseCharacter::IsCharacterBlockedByGeometry(ACharacter* TargetCharacter) c
 {
 
 	const FVector CameraLocation = PlayerCamera->GetComponentLocation();
-	const FVector PlayerLocation = GetActorLocation();
+	const FVector TargetLocation = TargetCharacter->GetActorLocation();
 
 	FHitResult HitResult;
 
@@ -204,7 +213,7 @@ bool ABaseCharacter::IsCharacterBlockedByGeometry(ACharacter* TargetCharacter) c
 
 	if (World)
 	{
-		if (World->LineTraceSingleByObjectType(HitResult, CameraLocation, PlayerLocation, ObjectQueryParams, TraceParams))
+		if (World->LineTraceSingleByObjectType(HitResult, CameraLocation, TargetLocation, ObjectQueryParams, TraceParams))
 		{
 			return HitResult.bBlockingHit;
 		}
@@ -256,64 +265,6 @@ bool ABaseCharacter::IsAlive() const
 	return true;
 }
 
-float ABaseCharacter::GetStamina() const
-{
-	return Stamina;
-}
-
-void ABaseCharacter::IncreaseStamina(float Amount, bool bIsPercentage)
-{
-	if (Amount < 0)
-	{
-		//If we got a negative, flip the sign.
-		Amount *= -1;
-	}
-
-	UpdateStamina(Amount, bIsPercentage);
-}
-
-void ABaseCharacter::DecreaseStamina(float Amount, bool bIsPercentage)
-{
-	if (Amount > 0)
-	{
-		//If we got a negative, flip the sign.
-		Amount *= -1;
-	}
-
-	UpdateStamina(Amount, bIsPercentage);
-}
-
-void ABaseCharacter::UpdateStamina(float Amount, bool bIsPercentage)
-{
-	float newAmount = 0.f;
-
-	if (bIsPercentage)
-	{
-		newAmount = (MaxStamina * Amount) + Stamina;
-
-		if (newAmount > MaxStamina)
-		{
-			newAmount = MaxStamina;
-		}
-	}
-	else
-	{
-		newAmount = Stamina + Amount;
-
-		if (newAmount > MaxStamina)
-		{
-			newAmount = MaxStamina;
-		}
-	}
-
-	Stamina = newAmount;
-
-	if (Role < ROLE_Authority)
-	{
-		Server_UpdateStamina(Amount, bIsPercentage);
-	}
-}
-
 void ABaseCharacter::LockOn()
 {
 	// If we're already locked on, and we're trying to lock on again, just unlock. 
@@ -324,6 +275,7 @@ void ABaseCharacter::LockOn()
 		return;
 	}
 
+	bIsLockedOn = true;
 	ACharacter* FoundTarget = NULL;
 
 	// We don't have a specific direction, since we're not already locked on.
@@ -363,8 +315,7 @@ void ABaseCharacter::Unlock()
 		return;
 	}
 
-	bIsLockedOn = false;
-	Target_LockOn = NULL;
+	UpdateLockTarget(NULL);
 
 	// Disable the timer that was checking if the lock target
 	// was still a valid target.
@@ -384,7 +335,7 @@ void ABaseCharacter::Unlock()
 
 void ABaseCharacter::Server_Unlock_Implementation()
 {
-	Server_Unlock();
+	Unlock();
 }
 
 bool ABaseCharacter::Server_Unlock_Validate()
@@ -517,8 +468,16 @@ void ABaseCharacter::UpdateLockTarget(ACharacter* NewTarget)
 {
 	// Change our lock target pointer to the supplied character
 	// and say that we're now locked on.
-	Target_LockOn = NewTarget;
-	bIsLockedOn = true;
+	if (NewTarget == NULL)
+	{
+		Target_LockOn = NewTarget;
+		bIsLockedOn = false;
+	}
+	else
+	{
+		Target_LockOn = NewTarget;
+		bIsLockedOn = true;
+	}
 
 	// If we aren't the server, call the server function.
 	if (Role < ROLE_Authority)
@@ -537,21 +496,11 @@ bool ABaseCharacter::Server_UpdateLockTarget_Validate(ACharacter* NewTarget)
 	return true;
 }
 
-void ABaseCharacter::Server_UpdateStamina_Implementation(float Value, bool bIsPercentage)
-{
-	UpdateStamina(Value, bIsPercentage);
-}
-
-bool ABaseCharacter::Server_UpdateStamina_Validate(float Value, bool bIsPercentage)
-{
-	return true;
-}
-
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	//DOREPLIFETIME(ABaseCharacter, Health);
-	DOREPLIFETIME_CONDITION(ABaseCharacter, Target_LockOn, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(ABaseCharacter, bIsLockedOn, COND_SkipOwner);
-	DOREPLIFETIME_CONDITION(ABaseCharacter, Stamina, COND_OwnerOnly);
+	DOREPLIFETIME(ABaseCharacter, Target_LockOn);
+	DOREPLIFETIME(ABaseCharacter, bIsLockedOn);
+
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 };
 
