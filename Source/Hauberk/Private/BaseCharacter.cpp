@@ -496,6 +496,26 @@ bool ABaseCharacter::Server_UpdateLockTarget_Validate(ACharacter* NewTarget)
 	return true;
 }
 
+void ABaseCharacter::PlayNetworkAnim(UAnimMontage* Montage)
+{
+	PlayAnimMontage(Montage);
+
+	if (Role < ROLE_Authority)
+	{
+		Server_PlayNetworkAnim(Montage);
+	}
+}
+
+void ABaseCharacter::Server_PlayNetworkAnim_Implementation(UAnimMontage* Montage)
+{
+	PlayNetworkAnim(Montage);
+}
+
+bool ABaseCharacter::Server_PlayNetworkAnim_Validate(UAnimMontage* Montage)
+{
+	return true;
+}
+
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	DOREPLIFETIME(ABaseCharacter, Target_LockOn);

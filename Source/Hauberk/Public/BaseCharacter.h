@@ -154,5 +154,12 @@ public:
 	virtual void Server_UpdateLockTarget_Implementation(ACharacter* NewTarget);
 	virtual bool Server_UpdateLockTarget_Validate(ACharacter* NewTarget);
 
+	UFUNCTION(BlueprintCallable, Category = "Animation")
+		virtual void PlayNetworkAnim(UAnimMontage* Montage);
+	UFUNCTION(Server, Reliable, WithValidation)
+		virtual void Server_PlayNetworkAnim(UAnimMontage* Montage);
+	virtual void Server_PlayNetworkAnim_Implementation(UAnimMontage* Montage);
+	virtual bool Server_PlayNetworkAnim_Validate(UAnimMontage* Montage);
+
 #pragma endregion
 };
