@@ -161,5 +161,9 @@ public:
 	virtual void Server_PlayNetworkAnim_Implementation(UAnimMontage* Montage);
 	virtual bool Server_PlayNetworkAnim_Validate(UAnimMontage* Montage);
 
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		virtual void Client_PlayNetworkAnim(UAnimMontage* Montage);
+	virtual void Client_PlayNetworkAnim_Implementation(UAnimMontage* Montage);
+	virtual bool Client_PlayNetworkAnim_Validate(UAnimMontage* Montage);
 #pragma endregion
 };

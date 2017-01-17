@@ -500,7 +500,11 @@ void ABaseCharacter::PlayNetworkAnim(UAnimMontage* Montage)
 {
 	PlayAnimMontage(Montage);
 
-	if (Role < ROLE_Authority)
+	if (Role == ROLE_Authority)
+	{
+		Client_PlayNetworkAnim(Montage);
+	}
+	else
 	{
 		Server_PlayNetworkAnim(Montage);
 	}
@@ -512,6 +516,16 @@ void ABaseCharacter::Server_PlayNetworkAnim_Implementation(UAnimMontage* Montage
 }
 
 bool ABaseCharacter::Server_PlayNetworkAnim_Validate(UAnimMontage* Montage)
+{
+	return true;
+}
+
+void ABaseCharacter::Client_PlayNetworkAnim_Implementation(UAnimMontage * Montage)
+{
+	PlayAnimMontage(Montage);
+}
+
+bool ABaseCharacter::Client_PlayNetworkAnim_Validate(UAnimMontage * Montage)
 {
 	return true;
 }
