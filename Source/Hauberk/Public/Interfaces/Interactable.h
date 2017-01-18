@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "IInteractable.generated.h"
+#include "Interactable.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UIInteractable : public UInterface
+class UInteractable : public UInterface
 {
 	GENERATED_UINTERFACE_BODY()
 };
@@ -14,7 +14,7 @@ class UIInteractable : public UInterface
 /**
  *
  */
-class HAUBERK_API IIInteractable
+class HAUBERK_API IInteractable
 {
 	GENERATED_IINTERFACE_BODY()
 

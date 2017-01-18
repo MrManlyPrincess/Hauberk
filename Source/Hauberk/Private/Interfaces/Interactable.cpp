@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Hauberk.h"
-#include "IInteractable.h"
+#include "Interactable.h"
 
 
 // This function does not need to be modified.
-UIInteractable::UIInteractable(const class FObjectInitializer& ObjectInitializer)
+UInteractable::UInteractable(const class FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
