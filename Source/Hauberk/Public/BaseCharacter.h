@@ -3,6 +3,10 @@
 #pragma once
 
 #include "GameFramework/Character.h"
+#include "Damageable.h"
+#include "Targetable.h"
+#include "HealthComponent.h"
+#include "StaminaComponent.h"
 #include "BaseCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -14,7 +18,7 @@ enum class ELockDirection : uint8
 };
 
 UCLASS()
-class HAUBERK_API ABaseCharacter : public ACharacter
+class HAUBERK_API ABaseCharacter : public ACharacter, public IDamageable, public ITargetable
 {
 	GENERATED_BODY()
 
@@ -25,11 +29,27 @@ public:
 protected:
 
 	// Player Camera properties.
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components|Camera")
 		USpringArmComponent* CameraArm;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components|Camera")
 		UCameraComponent* PlayerCamera;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components|Health")
+		UHealthComponent* PlayerHealth;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components|Stamina")
+		UStaminaComponent* PlayerStamina;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
+		float CameraUpdateSpeed;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Camera")
+		FVector CameraDefaultOffset;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Camera")
+		FVector CameraLockedOnOffset;
+
 
 	// LockOn Properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Transient, Category = "Lock On", meta = (DisplayName = "Lock Target"))
@@ -41,20 +61,6 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Lock On")
 		float LockOnRange;
 
-	// Stats Properties
-	UPROPERTY(BlueprintReadWrite, Category = "Character|Stats")
-		float MaxHealth;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Character|Stats")
-		float MaxStamina;
-
-private:
-
-	UPROPERTY(Transient, Replicated)
-		float Health;
-
-	UPROPERTY(Transient, Replicated)
-		float Stamina;
 
 public:
 
@@ -84,8 +90,26 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 #pragma endregion
 
+
+	// Interfaces
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Target")
+		FVector GetTargetableLocation();
+	virtual FVector GetTargetableLocation_Implementation() override;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Damage")
+		void OnDamaged(AActor* DamageCauser);
+	virtual void OnDamaged_Implementation(AActor* DamageCauser) override;
+
 	UFUNCTION(BlueprintCallable, Category = "Lock On")
 		bool GetClosestLockableTarget(ELockDirection Direction, ACharacter*& FoundTarget);
+
+	// Called each frame to update the camera's position.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Camera")
+		void UpdateCamera();
+
+	// Called each frame AFTER the update camera function to add post processing.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Camera")
+		void AddCameraOffset();
 
 	// Called when needing characters in our viewport.
 	UFUNCTION(BlueprintCallable, Category = "Camera|Frustrum")
@@ -106,20 +130,6 @@ public:
 	// Checks to see if our health is above zero
 	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
 		bool IsAlive() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
-		float GetHealth() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
-		float GetStamina() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
-		void IncreaseStamina(float Amount, bool bIsPercentage);
-
-	UFUNCTION(BlueprintCallable, Category = "Character|Stats")
-		void DecreaseStamina(float Amount, bool bIsPercentage);
-
-	void UpdateStamina(float Amount, bool bIsPercentage);
 
 #pragma region Replication
 
@@ -144,12 +154,16 @@ public:
 	virtual void Server_UpdateLockTarget_Implementation(ACharacter* NewTarget);
 	virtual bool Server_UpdateLockTarget_Validate(ACharacter* NewTarget);
 
-private:
+	UFUNCTION(BlueprintCallable, Category = "Animation")
+		virtual void PlayNetworkAnim(UAnimMontage* Montage);
 	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void Server_UpdateStamina(float Value, bool bIsPercentage);
-	virtual void Server_UpdateStamina_Implementation(float Value, bool bIsPercentage);
-	virtual bool Server_UpdateStamina_Validate(float Value, bool bIsPercentage);
+		virtual void Server_PlayNetworkAnim(UAnimMontage* Montage);
+	virtual void Server_PlayNetworkAnim_Implementation(UAnimMontage* Montage);
+	virtual bool Server_PlayNetworkAnim_Validate(UAnimMontage* Montage);
 
-
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		virtual void Client_PlayNetworkAnim(UAnimMontage* Montage);
+	virtual void Client_PlayNetworkAnim_Implementation(UAnimMontage* Montage);
+	virtual bool Client_PlayNetworkAnim_Validate(UAnimMontage* Montage);
 #pragma endregion
 };
