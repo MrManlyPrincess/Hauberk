@@ -23,5 +23,5 @@ class HAUBERK_API IInteractable
 public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Events")
-		void OnInteract();
+		void OnInteract(AActor* Instigator);
 };
