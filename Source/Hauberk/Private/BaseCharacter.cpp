@@ -77,11 +77,6 @@ FVector ABaseCharacter::GetTargetableLocation_Implementation()
 	return GetActorLocation();
 }
 
-void ABaseCharacter::OnDamaged_Implementation(AActor * DamageCauser)
-{
-
-}
-
 bool ABaseCharacter::IsInFrustrum(ACharacter* Character)
 {
 	ULocalPlayer* LocalPlayer = Cast<APlayerController>(GetController())->GetLocalPlayer();

@@ -7,15 +7,8 @@
 #include "Targetable.h"
 #include "HealthComponent.h"
 #include "StaminaComponent.h"
+#include "Enumerations.h"
 #include "BaseCharacter.generated.h"
-
-UENUM(BlueprintType)
-enum class ELockDirection : uint8
-{
-	None,
-	Left,
-	Right
-};
 
 UCLASS()
 class HAUBERK_API ABaseCharacter : public ACharacter, public IDamageable, public ITargetable
@@ -95,10 +88,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Target")
 		FVector GetTargetableLocation();
 	virtual FVector GetTargetableLocation_Implementation() override;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Damage")
-		void OnDamaged(AActor* DamageCauser);
-	virtual void OnDamaged_Implementation(AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Lock On")
 		bool GetClosestLockableTarget(ELockDirection Direction, ACharacter*& FoundTarget);

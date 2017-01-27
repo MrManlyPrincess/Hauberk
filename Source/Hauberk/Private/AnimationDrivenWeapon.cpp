@@ -15,12 +15,12 @@ AAnimationDrivenWeapon::AAnimationDrivenWeapon()
 	TraceBetweenPoints = false;
 
 	USceneComponent* SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComp"));
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	//Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	CapturePoint = CreateDefaultSubobject<UArrowComponent>(TEXT("CapturePoint"));
 	CapturePoint->SetRelativeRotation(FRotator(90.f, 0, 0));
 
 	RootComponent = SceneComp;
-	Mesh->SetupAttachment(SceneComp);
+	//Mesh->SetupAttachment(SceneComp);
 	CapturePoint->SetupAttachment(SceneComp);
 
 }
@@ -91,7 +91,12 @@ void AAnimationDrivenWeapon::EndDamageWindow()
 void AAnimationDrivenWeapon::BeginDamagePathCapture()
 {
 	
-	if (IsValid(WeaponOwner) && IsValid(Mesh->GetStaticMesh()))
+	if (IsActorTickEnabled())
+	{
+		SetActorTickEnabled(true);
+	}
+
+	if (IsValid(WeaponOwner))
 	{
 		IsCurrentlyCapturing = true;
 		UWorld* World = GetWorld();
@@ -100,7 +105,7 @@ void AAnimationDrivenWeapon::BeginDamagePathCapture()
 	}
 	else
 	{
-		print(TEXT("No Valid Owner or Mesh"));
+		print(TEXT("No Valid Owner"));
 	}
 
 	CapturedLocations.Empty();
@@ -113,7 +118,7 @@ void AAnimationDrivenWeapon::EndDamagePathCapture()
 
 	IsCurrentlyCapturing = false;
 
-	if (IsValid(WeaponOwner) && IsValid(Mesh->GetStaticMesh()))
+	if (IsValid(WeaponOwner))
 	{
 		ACharacter* _Owner = Cast<ACharacter>(WeaponOwner);
 		if (IsValid(_Owner))
@@ -147,7 +152,7 @@ void AAnimationDrivenWeapon::EndDamagePathCapture()
 	}
 	else
 	{
-		print(TEXT("No Valid Owner or Mesh"));
+		print(TEXT("No Valid Owner"));
 	}
 }
 
@@ -182,6 +187,12 @@ void AAnimationDrivenWeapon::RenderSavedCollision()
 	if (!IsValid(WeaponOwner))
 	{
 		print(TEXT("No Weapon Owner Found."));
+		return;
+	}
+
+	if (CollisionBoxes.Num() == 0)
+	{
+		print(TEXT("No Collision Boxes found. Aborting Collision checks."));
 		return;
 	}
 

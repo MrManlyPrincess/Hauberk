@@ -21,8 +21,9 @@ public:
 		bool ShouldRecord;
 
 	/* The display mesh component of the weapon. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Settings")
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Settings")
 		UStaticMeshComponent* Mesh;
+	*/
 
 	/* Enables tracing between the captured data points. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Playback")

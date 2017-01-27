@@ -11,30 +11,36 @@ FCombo ABaseWeapon::GetCurrentCombo() const
 FCombo ABaseWeapon::GetNextCombo(EAttackType AttackType)
 {
 	FCombo Combo;
+
 	switch (AttackType)
 	{
 		case EAttackType::LightAttack:
-			Combo = LightAttacks[ComboIndex];
-			ComboIndex++;
-
-			if (ComboIndex >= LightAttacks.Num())
+			if (LightAttacks.Num() > 0)
 			{
-				ComboIndex = 0;
+				Combo = LightAttacks[ComboIndex];
+				ComboIndex++;
+				if (ComboIndex >= LightAttacks.Num())
+				{
+					ComboIndex = 0;
+				}
+				LastKnownCombo = Combo;
 			}
-
-			LastKnownCombo = Combo;
 			break;
 
 		case EAttackType::ChargeAttack:
-			Combo = ChargeAttacks[ComboIndex];
-			ComboIndex++;
 
-			if (ComboIndex >= ChargeAttacks.Num())
+			if (ChargeAttacks.Num() > 0)
 			{
-				ComboIndex = 0;
-			}
+				Combo = ChargeAttacks[ComboIndex];
+				ComboIndex++;
 
-			LastKnownCombo = Combo;
+				if (ComboIndex >= ChargeAttacks.Num())
+				{
+					ComboIndex = 0;
+				}
+
+				LastKnownCombo = Combo;
+			}
 			break;
 	}
 

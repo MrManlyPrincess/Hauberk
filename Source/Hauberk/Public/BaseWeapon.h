@@ -3,6 +3,8 @@
 #pragma once
 
 #include "AnimationDrivenWeapon.h"
+#include "Enumerations.h"
+#include "Damageable.h"
 #include "BaseWeapon.generated.h"
 
 USTRUCT(BlueprintType)
@@ -14,17 +16,10 @@ struct FCombo
 		UAnimMontage* Montage;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		float BaseDamageAmount;
+		float StaminaCost;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		float StaminaCost;
-};
-
-UENUM(BlueprintType)
-enum class EAttackType : uint8
-{
-	LightAttack,
-	ChargeAttack
+		FDamageMap AdditionalDamage;
 };
 
 /**
@@ -51,7 +46,8 @@ public:
 	UPROPERTY()
 		float ComboIndex;
 
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Damage")
+		TArray<FDamageMap> DamageMaps;
 	
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 		FCombo GetCurrentCombo() const;
@@ -64,5 +60,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 		void ClearDamagedActors();
-
 };
