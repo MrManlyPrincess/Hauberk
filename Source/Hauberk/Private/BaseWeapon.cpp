@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Hauberk.h"
+#include "UnrealNetwork.h"
 #include "BaseWeapon.h"
 
 FCombo ABaseWeapon::GetCurrentCombo() const
@@ -59,4 +60,10 @@ void ABaseWeapon::ClearDamagedActors()
 	{
 		DamagedActors.Empty();
 	}
+}
+
+void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	DOREPLIFETIME(ABaseWeapon, ComboIndex);
+	DOREPLIFETIME(ABaseWeapon, LastKnownCombo);
 }

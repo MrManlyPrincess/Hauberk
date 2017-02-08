@@ -64,6 +64,7 @@ void UStaminaComponent::DecreaseStamina(float Amount, bool bIsPercentage)
 
 void UStaminaComponent::UpdateStamina(float Amount, bool bIsPercentage)
 {
+
 	float newAmount = 0.f;
 
 	if (bIsPercentage)
@@ -87,6 +88,15 @@ void UStaminaComponent::UpdateStamina(float Amount, bool bIsPercentage)
 
 	Stamina = newAmount;
 
+	if (Amount > 0)
+	{
+		OnStaminaIncreased.Broadcast(Amount);
+	}
+	else
+	{
+		OnStaminaDecreased.Broadcast(Amount);
+	}
+
 	if (GetOwnerRole() < ROLE_Authority)
 	{
 		Server_UpdateStamina(Amount, bIsPercentage);
@@ -105,5 +115,5 @@ bool UStaminaComponent::Server_UpdateStamina_Validate(float Value, bool bIsPerce
 
 void UStaminaComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	DOREPLIFETIME_CONDITION(UStaminaComponent, Stamina, COND_OwnerOnly);
+	DOREPLIFETIME(UStaminaComponent, Stamina);
 }

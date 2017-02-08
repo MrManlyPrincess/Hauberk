@@ -2,6 +2,7 @@
 
 #include "Hauberk.h"
 #include "BaseCharacter.h"
+#include "BaseAnimInstance.h"
 #include "UnrealNetwork.h"
 
 // Sets default values
@@ -493,15 +494,14 @@ bool ABaseCharacter::Server_UpdateLockTarget_Validate(ACharacter* NewTarget)
 
 void ABaseCharacter::PlayNetworkAnim(UAnimMontage* Montage)
 {
-	PlayAnimMontage(Montage);
-
-	if (Role == ROLE_Authority)
+	if (Role < ROLE_Authority)
 	{
-		Client_PlayNetworkAnim(Montage);
+		PlayAnimMontage(Montage);
+		Server_PlayNetworkAnim(Montage);
 	}
 	else
 	{
-		Server_PlayNetworkAnim(Montage);
+		Client_PlayNetworkAnim(Montage);
 	}
 }
 
@@ -517,6 +517,22 @@ bool ABaseCharacter::Server_PlayNetworkAnim_Validate(UAnimMontage* Montage)
 
 void ABaseCharacter::Client_PlayNetworkAnim_Implementation(UAnimMontage * Montage)
 {
+	UAnimMontage* CurrentMontage = GetCurrentMontage();
+
+	if (Montage == CurrentMontage)
+	{
+		UAnimInstance* Test = GetMesh()->GetAnimInstance();
+		UBaseAnimInstance* Test2 = Cast<UBaseAnimInstance>(Test);
+
+		float mPosition = Test2->GetPositionFromMontage(Montage);
+		float mPlayLength = Montage->GetPlayLength();
+
+		UE_LOG(LogTemp, Log, TEXT("mPosition: %d"), mPosition);
+		UE_LOG(LogTemp, Log, TEXT("mPlayLength: %d"), mPlayLength);
+
+		return;
+	}
+
 	PlayAnimMontage(Montage);
 }
 

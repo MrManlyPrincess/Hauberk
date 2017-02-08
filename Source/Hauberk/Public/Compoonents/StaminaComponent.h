@@ -38,6 +38,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stamina")
 		void DecreaseStamina(float Amount, bool bIsPercentage);
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStamina_OnDecreased, float, Amount);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStamina_OnIncreased, float, Amount);
+
+	UPROPERTY(BlueprintAssignable, Category = "Stamina")
+		FStamina_OnDecreased OnStaminaDecreased;
+
+	UPROPERTY(BlueprintAssignable, Category = "Stamina")
+		FStamina_OnIncreased OnStaminaIncreased;
+
 	void UpdateStamina(float Amount, bool bIsPercentage);
 
 private:

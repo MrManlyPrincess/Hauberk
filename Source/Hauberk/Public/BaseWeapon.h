@@ -37,13 +37,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Combos")
 		TArray<FCombo> ChargeAttacks;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Damage")
+	UPROPERTY(BlueprintReadWrite, Transient, Category = "Damage")
 		TArray<AActor*> DamagedActors;
 
-	UPROPERTY()
+	UPROPERTY(Transient, Replicated)
 		FCombo LastKnownCombo;
 
-	UPROPERTY()
+	UPROPERTY(Transient, Replicated)
 		float ComboIndex;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Damage")
@@ -60,4 +60,5 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 		void ClearDamagedActors();
+
 };
