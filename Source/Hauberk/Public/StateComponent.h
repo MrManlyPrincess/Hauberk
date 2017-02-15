@@ -61,5 +61,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "State")
 		void OnRepPreviousState();
+
+private:
+	UFUNCTION(Server, Reliable, WithValidation)
+		virtual void Server_UpdateState(uint8 NewState);
+	virtual void Server_UpdateState_Implementation(uint8 NewState);
+	virtual bool Server_UpdateState_Validate(uint8 NewState);
 };
 

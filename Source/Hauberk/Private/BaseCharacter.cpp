@@ -521,6 +521,7 @@ void ABaseCharacter::Client_PlayNetworkAnim_Implementation(UAnimMontage * Montag
 
 	if (Montage == CurrentMontage)
 	{
+		/*
 		UAnimInstance* Test = GetMesh()->GetAnimInstance();
 		UBaseAnimInstance* Test2 = Cast<UBaseAnimInstance>(Test);
 
@@ -529,6 +530,7 @@ void ABaseCharacter::Client_PlayNetworkAnim_Implementation(UAnimMontage * Montag
 
 		UE_LOG(LogTemp, Log, TEXT("mPosition: %d"), mPosition);
 		UE_LOG(LogTemp, Log, TEXT("mPlayLength: %d"), mPlayLength);
+		*/
 
 		return;
 	}

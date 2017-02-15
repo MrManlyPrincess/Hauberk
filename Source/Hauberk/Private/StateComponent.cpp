@@ -50,6 +50,11 @@ void UStateComponent::SetState(uint8 NewState)
 
 	// Notify that the new state has just been swapped,
 	OnStateEnter(CurrentState, PreviousState);
+
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		Server_UpdateState(NewState);
+	}
 }
 
 void UStateComponent::OnStateExit_Implementation()
@@ -80,6 +85,16 @@ void UStateComponent::OnRepSetPreviousState()
 void UStateComponent::OnRepCurrentState_Implementation() {}
 void UStateComponent::OnRepPreviousState_Implementation() {}
 
+
+void UStateComponent::Server_UpdateState_Implementation(uint8 NewState)
+{
+	SetState(NewState);
+}
+
+bool UStateComponent::Server_UpdateState_Validate(uint8 NewState)
+{
+	return true;
+}
 
 void UStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
