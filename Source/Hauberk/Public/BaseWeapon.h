@@ -40,10 +40,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, Transient, Category = "Damage")
 		TArray<AActor*> DamagedActors;
 
-	UPROPERTY(Transient, Replicated)
+	UPROPERTY(Transient)
 		FCombo LastKnownCombo;
 
-	UPROPERTY(Transient, Replicated)
+	UPROPERTY(Transient)
 		float ComboIndex;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Damage")
@@ -60,5 +60,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 		void ClearDamagedActors();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 };

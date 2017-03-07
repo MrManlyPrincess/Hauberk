@@ -151,16 +151,19 @@ void ABaseCharacter::AddCameraOffset_Implementation()
 
 	if (World)
 	{
-		if (bIsLockedOn)
+		FVector InterpLocation = FVector::ZeroVector;
+		if (bIsLockedOn == true)
 		{
 			FTransform CameraTransform = PlayerCamera->GetRelativeTransform();
-			FMath::VInterpTo(CameraTransform.GetLocation(), CameraLockedOnOffset, World->GetDeltaSeconds(), CameraUpdateSpeed);
+			InterpLocation = FMath::VInterpTo(CameraTransform.GetLocation(), CameraLockedOnOffset, World->GetDeltaSeconds(), CameraUpdateSpeed);
 		}
 		else
 		{
 			FTransform CameraTransform = PlayerCamera->GetRelativeTransform();
-			FMath::VInterpTo(CameraTransform.GetLocation(), CameraDefaultOffset, World->GetDeltaSeconds(), CameraUpdateSpeed);
+			InterpLocation = FMath::VInterpTo(CameraTransform.GetLocation(), CameraDefaultOffset, World->GetDeltaSeconds(), CameraUpdateSpeed);
 		}
+
+		PlayerCamera->SetRelativeLocation(InterpLocation);
 	}
 }
 
@@ -271,7 +274,6 @@ void ABaseCharacter::LockOn()
 		return;
 	}
 
-	bIsLockedOn = true;
 	ACharacter* FoundTarget = NULL;
 
 	// We don't have a specific direction, since we're not already locked on.
@@ -289,6 +291,8 @@ void ABaseCharacter::LockOn()
 			TimerManager.ClearTimer(TimerHandle_Check_ValidTarget);
 			TimerManager.SetTimer(TimerHandle_Check_ValidTarget, this, &ABaseCharacter::CheckIfStillValidTarget, 0.5f, true);
 		}
+
+		bIsLockedOn = true;
 	}
 }
 
@@ -345,7 +349,7 @@ bool ABaseCharacter::GetClosestLockableTarget(ELockDirection Direction, ACharact
 	const FVector PlayerLocation = GetActorLocation();
 	float TargetCenterX = 0.f;
 	float DistanceToBeat = 0.f;
-	FVector TargetLocation;
+	FVector TargetLocation = FVector::ZeroVector;
 	ACharacter* ClosestCharacter = NULL;
 	OutTarget = NULL;
 	UWorld* World = GetWorld();
@@ -369,15 +373,30 @@ bool ABaseCharacter::GetClosestLockableTarget(ELockDirection Direction, ACharact
 			}
 		}
 
+		if (ClosestCharacter == NULL)
+		{
+			return false;
+		}
+
 		OutTarget = ClosestCharacter;
 		return true;
 	}
 
 	else if (Direction == ELockDirection::Left || Direction == ELockDirection::Right)
 	{
+		if (Target_LockOn == NULL)
+		{
+			return false;
+		}
+
 		// Get our player controller, as we're going to use it to get the screen coordinates
 		// of the characters in our view.
 		APlayerController* PC = World->GetFirstPlayerController();
+
+		if (PC == NULL)
+		{
+			return false;
+		}
 
 		// Get the location of our current lock target, since we'll be using this
 		// as our point of reference.
@@ -387,7 +406,7 @@ bool ABaseCharacter::GetClosestLockableTarget(ELockDirection Direction, ACharact
 		FVector2D ViewportSize = FVector2D();
 
 		// Convert the location of our current lock target to an X position.
-		if (PC->ProjectWorldLocationToScreen(LockTargetLocation, ScreenLocation))
+		if (PC->ProjectWorldLocationToScreen(Target_LockOn->GetActorLocation(), ScreenLocation))
 		{
 			// This is now our point of reference.
 			TargetCenterX = ScreenLocation.X;
@@ -411,35 +430,36 @@ bool ABaseCharacter::GetClosestLockableTarget(ELockDirection Direction, ACharact
 			for (auto& Character : Characters)
 			{
 				// Make sure we skip our current lock target.
-				if (Target_LockOn == Character)
+				if (Target_LockOn != Character)
 				{
-					continue;
-				}
+					TargetLocation = Character->GetActorLocation();
+					const float DistanceToTarget = (TargetLocation - PlayerLocation).Size();
 
-				TargetLocation = Character->GetActorLocation();
-				const float DistanceToTarget = (TargetLocation - PlayerLocation).Size();
-
-				// Make sure this character is in range.
-				if (DistanceToTarget < LockOnRange)
-				{
-					if (PC->ProjectWorldLocationToScreen(LockTargetLocation, ScreenLocation))
-					{
-						// Check if this character is closest to the left
-						if (Direction == ELockDirection::Left)
+					// Make sure this character is in range.
+					if (DistanceToTarget < LockOnRange)
+					{	
+						FVector2D _ScreenLocation = FVector2D();
+						if (PC->ProjectWorldLocationToScreen(TargetLocation, _ScreenLocation))
 						{
-							if (ScreenLocation.X < TargetCenterX && ScreenLocation.X > DistanceToBeat)
+
+							float ScreenLocationX = _ScreenLocation.X;
+							// Check if this character is closest to the left
+							if (Direction == ELockDirection::Left)
 							{
-								ScreenLocation.X = DistanceToBeat;
-								ClosestCharacter = Character;
+								if (ScreenLocationX < TargetCenterX && ScreenLocationX > DistanceToBeat)
+								{
+									DistanceToBeat = ScreenLocationX;
+									ClosestCharacter = Character;
+								}
 							}
-						}
-						// Check if this character is closest to the right
-						else if (Direction == ELockDirection::Right)
-						{
-							if (ScreenLocation.X > TargetCenterX && ScreenLocation.X < DistanceToBeat)
+							// Check if this character is closest to the right
+							else if (Direction == ELockDirection::Right)
 							{
-								ScreenLocation.X = DistanceToBeat;
-								ClosestCharacter = Character;
+								if (ScreenLocationX > TargetCenterX && ScreenLocationX < DistanceToBeat)
+								{
+									DistanceToBeat = ScreenLocationX;
+									ClosestCharacter = Character;
+								}
 							}
 						}
 					}

@@ -64,6 +64,6 @@ void ABaseWeapon::ClearDamagedActors()
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	DOREPLIFETIME(ABaseWeapon, ComboIndex);
-	DOREPLIFETIME(ABaseWeapon, LastKnownCombo);
+	//DOREPLIFETIME(ABaseWeapon, ComboIndex);
+	//DOREPLIFETIME(ABaseWeapon, LastKnownCombo);
 }
