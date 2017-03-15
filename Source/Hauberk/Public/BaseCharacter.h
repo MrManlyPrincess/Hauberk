@@ -17,7 +17,7 @@ class HAUBERK_API ABaseCharacter : public ACharacter, public IDamageable, public
 
 public:
 	// Sets default values for this character's properties
-	ABaseCharacter();
+	ABaseCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
 

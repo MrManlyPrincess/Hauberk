@@ -3,10 +3,12 @@
 #include "Hauberk.h"
 #include "BaseCharacter.h"
 #include "BaseAnimInstance.h"
+#include "BaseCharacterMovementComponent.h"
 #include "UnrealNetwork.h"
 
 // Sets default values
-ABaseCharacter::ABaseCharacter()
+ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer.SetDefaultSubobjectClass<UBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -537,23 +539,23 @@ bool ABaseCharacter::Server_PlayNetworkAnim_Validate(UAnimMontage* Montage)
 
 void ABaseCharacter::Client_PlayNetworkAnim_Implementation(UAnimMontage * Montage)
 {
-	UAnimMontage* CurrentMontage = GetCurrentMontage();
+	//UAnimMontage* CurrentMontage = GetCurrentMontage();
 
-	if (Montage == CurrentMontage)
-	{
-		/*
-		UAnimInstance* Test = GetMesh()->GetAnimInstance();
-		UBaseAnimInstance* Test2 = Cast<UBaseAnimInstance>(Test);
+	//if (Montage == CurrentMontage)
+	//{
+	//	/*
+	//	UAnimInstance* Test = GetMesh()->GetAnimInstance();
+	//	UBaseAnimInstance* Test2 = Cast<UBaseAnimInstance>(Test);
 
-		float mPosition = Test2->GetPositionFromMontage(Montage);
-		float mPlayLength = Montage->GetPlayLength();
+	//	float mPosition = Test2->GetPositionFromMontage(Montage);
+	//	float mPlayLength = Montage->GetPlayLength();
 
-		UE_LOG(LogTemp, Log, TEXT("mPosition: %d"), mPosition);
-		UE_LOG(LogTemp, Log, TEXT("mPlayLength: %d"), mPlayLength);
-		*/
+	//	UE_LOG(LogTemp, Log, TEXT("mPosition: %d"), mPosition);
+	//	UE_LOG(LogTemp, Log, TEXT("mPlayLength: %d"), mPlayLength);
+	//	*/
 
-		return;
-	}
+	//	return;
+	//}
 
 	PlayAnimMontage(Montage);
 }
